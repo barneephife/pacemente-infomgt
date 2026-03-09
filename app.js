@@ -2,6 +2,69 @@
 // Pacemente IMF — app.js · Pure vanilla JS, zero dependencies
 // ═══════════════════════════════════════════════════════════════
 
+// ── PDF File Mapping ──
+var PDF_MAP = {
+  "EXC-001": "pdf/EXC-001_Exception_Management_Policy_Register.pdf",
+  "GOV-001": "pdf/GOV-001_NIS2_Governance_Instrument.pdf",
+  "IMF-001": "pdf/IMF-001_Information_Management_Framework.pdf",
+  "PLAN-001": "pdf/PLAN-001_IMF_Gap_Remediation_Implementation_Plan.pdf",
+  "POL-001": "pdf/POL-001_Data_Classification_Policy.pdf",
+  "POL-002": "pdf/POL-002_Data_Retention_Disposal_Policy.pdf",
+  "POL-003": "pdf/POL-003_Data_Integrity_Policy.pdf",
+  "POL-004": "pdf/POL-004_Privacy_Policy.pdf",
+  "POL-005": "pdf/POL-005_System_Classification_Policy.pdf",
+  "POL-006": "pdf/POL-006_Computer_System_Validation_Qualification_Policy.pdf",
+  "POL-007": "pdf/POL-007_Change_Management_Policy.pdf",
+  "POL-008": "pdf/POL-008_Access_Control_Policy.pdf",
+  "POL-009": "pdf/POL-009_Privileged_Access_Management_Policy.pdf",
+  "POL-010": "pdf/POL-010_Information_Security_Risk_Policy.pdf",
+  "POL-011": "pdf/POL-011_Business_Continuity_Policy.pdf",
+  "POL-012": "pdf/POL-012_Incident_Response_Policy.pdf",
+  "POL-013": "pdf/POL-013_Third_Party_Vendor_Risk_Policy.pdf",
+  "POL-014": "pdf/POL-014_Audit_Trail_Monitoring_Policy.pdf",
+  "POL-015": "pdf/POL-015_IT_Service_Management_Operational_Incident_Policy.pdf",
+  "POL-016": "pdf/POL-016_Backup_Management_Policy.pdf",
+  "POL-017": "pdf/POL-017_Vulnerability_Management_Policy.pdf",
+  "POL-018": "pdf/POL-018_Cryptography_Key_Management_Policy.pdf",
+  "POL-019": "pdf/POL-019_Network_Security_Policy.pdf",
+  "POL-020": "pdf/POL-020_Security_Awareness_Training_Policy.pdf",
+  "POL-021": "pdf/POL-021_HR_Security_Acceptable_Use_Policy.pdf",
+  "POL-022": "pdf/POL-022_Communications_Security_Policy.pdf",
+  "POL-023": "pdf/POL-023_AI_Governance_Acceptable_Use_Policy.pdf",
+  "RACI-001": "pdf/RACI-001_Roles_Responsibilities_Authorities_Matrix.pdf",
+  "SOP-001": "pdf/SOP-001_Data_Classification_Process.pdf",
+  "SOP-002": "pdf/SOP-002_Data_Retention_Disposal_Process.pdf",
+  "SOP-003": "pdf/SOP-003_Data_Integrity_Process.pdf",
+  "SOP-004": "pdf/SOP-004_Privacy_Process.pdf",
+  "SOP-005": "pdf/SOP-005_System_Classification_Process.pdf",
+  "SOP-006": "pdf/SOP-006_Computer_System_Validation_Process.pdf",
+  "SOP-007": "pdf/SOP-007_Change_Management_Process.pdf",
+  "SOP-008": "pdf/SOP-008_Access_Control_Process.pdf",
+  "SOP-009": "pdf/SOP-009_Privileged_Access_Management_Process.pdf",
+  "SOP-010": "pdf/SOP-010_IS_Risk_Assessment_Process.pdf",
+  "SOP-011": "pdf/SOP-011_Business_Continuity_DR_Process.pdf",
+  "SOP-012": "pdf/SOP-012_Security_Incident_Response_Process.pdf",
+  "SOP-013": "pdf/SOP-013_Vendor_Risk_Assessment_Process.pdf",
+  "SOP-014": "pdf/SOP-014_Audit_Trail_Review_Process.pdf",
+  "SOP-015": "pdf/SOP-015_ITSM_Operational_Incident_Process.pdf",
+  "SOP-016": "pdf/SOP-016_Backup_Restore_Process.pdf",
+  "SOP-017": "pdf/SOP-017_Vulnerability_Management_Process.pdf",
+  "SOP-018": "pdf/SOP-018_Cryptography_Key_Management_Process.pdf",
+  "SOP-019": "pdf/SOP-019_Network_Security_Process.pdf",
+  "SOP-020": "pdf/SOP-020_Security_Awareness_Training_Process.pdf",
+  "SOP-021": "pdf/SOP-021_HR_Security_Process.pdf",
+  "SOP-022": "pdf/SOP-022_Communications_Security_Process.pdf",
+  "SOP-023": "pdf/SOP-023_AI_Governance_Process.pdf",
+  "WI-001": "pdf/WI-001_Data_Classification_Questionnaire.pdf",
+  "WI-005": "pdf/WI-005_System_Classification_Questionnaire.pdf",
+  "WI-021": "pdf/WI-021_Acceptable_Use_Policy.pdf",
+};
+function pdfLink(id) {
+  var p = PDF_MAP[id];
+  if (!p) return '';
+  return ' <a href="' + p + '" target="_blank" onclick="event.stopPropagation()" class="pdf-btn" title="View PDF">&#128196; PDF</a>';
+}
+
 // ── NIS2 Mapping (Overview) ──
 const NIS2 = {
   "GOV-001":  ["Art.20(1)","Art.20(2)","Art.21(f)"],
@@ -1580,7 +1643,7 @@ document.addEventListener('DOMContentLoaded', function() {
       if (hl) html += nis2Badge(arts, true);
       html += '</div>';
       html += '<div class="fw-card-title">' + d.title + '</div>';
-      html += '<div class="fw-card-type">' + d.type.toUpperCase() + '</div></div>';
+      html += '<div class="fw-card-type">' + d.type.toUpperCase() + pdfLink(d.id) + '</div></div>';
     });
     html += '</div></div>';
 
@@ -1626,6 +1689,7 @@ document.addEventListener('DOMContentLoaded', function() {
           html += '<span class="dom-pol-title" style="color:#CBD5E1">' + pol.title + '</span>';
           if (pol.note) html += '<span class="dom-pol-note">· ' + pol.note + '</span>';
           html += nis2Badge(polN, true);
+          html += pdfLink(pol.id);
           html += '</div>';
 
           pol.sops.forEach(function(sop) {
@@ -1637,11 +1701,12 @@ document.addEventListener('DOMContentLoaded', function() {
             if (sop.note) html += '<span class="dom-pol-note" style="margin-left:6px">· ' + sop.note + '</span>';
             html += '</span>';
             html += nis2Badge(sopArts, true);
+            html += pdfLink(sop.id);
             html += '</div>';
 
             if (!nis2Only && sop.wis) sop.wis.forEach(function(wi) {
               html += '<div class="dom-pol-row wi"><span class="dom-pol-id" style="color:#334155">' + wi.id + '</span>';
-              html += '<span class="dom-pol-title" style="color:#64748B">' + wi.title + '</span></div>';
+              html += '<span class="dom-pol-title" style="color:#64748B">' + wi.title + '</span>' + pdfLink(wi.id) + '</div>';
             });
           });
         });
@@ -1692,7 +1757,7 @@ document.addEventListener('DOMContentLoaded', function() {
         html += '<span class="dom-detail-row-title pol">' + pol.title + '</span>';
         if (pol.note) html += '<span style="font-family:monospace;font-size:9px;color:#4FC3F7;white-space:nowrap">· ' + pol.note + '</span>';
         html += nis2Badge(nis2Articles(pol.id), true);
-        html += '<span class="dom-detail-type-tag policy">POLICY</span></div>';
+        html += pdfLink(pol.id) + '<span class="dom-detail-type-tag policy">POLICY</span></div>';
 
         pol.sops.forEach(function(sop) {
           if (nis2Only && !isNIS2(sop.id)) return;
@@ -1701,13 +1766,13 @@ document.addEventListener('DOMContentLoaded', function() {
           html += '<span class="dom-detail-row-title sop">' + sop.title;
           if (sop.note) html += '<span style="margin-left:7px;font-family:monospace;font-size:9px;color:#4FC3F7">· ' + sop.note + '</span>';
           html += '</span>' + nis2Badge(nis2Articles(sop.id), true);
-          html += '<span class="dom-detail-type-tag sop">SOP</span></div>';
+          html += pdfLink(sop.id) + '<span class="dom-detail-type-tag sop">SOP</span></div>';
 
           if (!nis2Only && sop.wis) sop.wis.forEach(function(wi) {
             html += '<div class="dom-detail-row wi-row">';
             html += '<span class="dom-detail-row-id wi">' + wi.id + '</span>';
             html += '<span class="dom-detail-row-title wi">' + wi.title + '</span>';
-            html += '<span class="dom-detail-type-tag wi">WI</span></div>';
+            html += pdfLink(wi.id) + '<span class="dom-detail-type-tag wi">WI</span></div>';
           });
         });
       });
@@ -1910,6 +1975,10 @@ document.addEventListener('DOMContentLoaded', function() {
     html += '<span class="detail-badge detail-status-badge" style="background:'+sc.bg+';color:'+sc.c+'">● '+doc.status+'</span>';
     html += '<span class="detail-badge detail-version" style="background:#F1F5F9;color:#475569">v'+doc.version+'</span>';
     html += '</div>';
+
+    if (PDF_MAP[doc.id]) {
+      html += '<a href="'+PDF_MAP[doc.id]+'" target="_blank" class="detail-pdf-btn">&#128196; View Full Document (PDF)</a>';
+    }
 
     if (arts) {
       html += '<div class="detail-nis2-box"><div class="detail-nis2-head"><span class="detail-nis2-flag">&#9873;</span><span class="detail-nis2-title">NIS2 Directive (EU) 2022/2555</span></div>';

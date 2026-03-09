@@ -502,6 +502,37 @@ body {
   padding:1px 6px; border-radius:8px; font-size:10px; font-weight:600;
 }
 
+/* PDF button */
+.pdf-btn {
+  display:inline-flex; align-items:center; gap:3px;
+  font-family:monospace; font-size:9px; font-weight:600;
+  text-decoration:none; padding:2px 7px; border-radius:4px;
+  white-space:nowrap; transition: all 0.15s; flex-shrink:0;
+}
+/* Dark theme (overview) */
+#page-overview .pdf-btn {
+  color:#4FC3F7; border:1px solid rgba(79,195,247,0.3);
+  background:rgba(79,195,247,0.08);
+}
+#page-overview .pdf-btn:hover {
+  background:rgba(79,195,247,0.2); border-color:rgba(79,195,247,0.6);
+}
+/* Light theme (register) */
+#page-register .pdf-btn {
+  color:#2E5EA8; border:1px solid #CBD5E1;
+  background:#EFF6FF;
+}
+#page-register .pdf-btn:hover {
+  background:#D6E4F7; border-color:#2E5EA8;
+}
+.detail-pdf-btn {
+  display:inline-flex; align-items:center; gap:6px;
+  font-size:13px; font-weight:600; text-decoration:none;
+  padding:8px 16px; border-radius:6px; margin-bottom:16px;
+  color:#fff; background:#2E5EA8; transition: background 0.15s;
+}
+.detail-pdf-btn:hover { background:#1B2A4A; }
+
 /* Responsive */
 @media (max-width: 768px) {
   .nav-inner { padding:10px 16px; }
