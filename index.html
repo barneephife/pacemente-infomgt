@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pacemente — Information Management Framework</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #080E1A; color: #E2E8F0; font-family: Georgia, 'Times New Roman', serif; }
+    .page-nav {
+      position: sticky; top: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 44px;
+      background: rgba(8,14,26,0.95);
+      border-bottom: 1px solid rgba(79,195,247,0.15);
+      backdrop-filter: blur(8px);
+    }
+    .page-nav-brand {
+      font-family: monospace; font-size: 12px; color: #4FC3F7;
+      letter-spacing: 0.15em; text-decoration: none;
+    }
+    .page-nav-links { display: flex; gap: 4px; }
+    .page-nav-links button {
+      background: transparent; border: 1px solid rgba(255,255,255,0.09);
+      color: #64748B; border-radius: 6px; padding: 6px 16px; cursor: pointer;
+      font-family: monospace; font-size: 11px; letter-spacing: 0.08em; transition: all 0.15s;
+    }
+    .page-nav-links button.active {
+      background: rgba(79,195,247,0.12); border-color: rgba(79,195,247,0.45); color: #4FC3F7;
+    }
+    .page-nav-links button:hover { border-color: rgba(79,195,247,0.3); color: #94A3B8; }
+  </style>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel" src="IMF_Visual_Overview.js"></script>
+  <script type="text/babel" src="IMF_Document_Register.js"></script>
+  <script type="text/babel">
+    const { useState } = React;
+
+    function App() {
+      const [page, setPage] = useState("overview");
+
+      return (
+        <div>
+          <nav className="page-nav">
+            <a href="/" className="page-nav-brand">PACEMENTE · IMF</a>
+            <div className="page-nav-links">
+              <button className={page === "overview" ? "active" : ""} onClick={() => setPage("overview")}>
+                OVERVIEW
+              </button>
+              <button className={page === "register" ? "active" : ""} onClick={() => setPage("register")}>
+                DOCUMENT REGISTER
+              </button>
+            </div>
+          </nav>
+          {page === "overview" && <IMFOverview />}
+          {page === "register" && <IMFRegister />}
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById("root"));
+    root.render(<App />);
+  </script>
+</body>
+</html>
