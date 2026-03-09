@@ -110,9 +110,9 @@ const NIS2 = {
 };
 
 // Colour constants
-const NIS2_COLOR   = "#F59E0B";
-const NIS2_BG      = "rgba(245,158,11,0.12)";
-const NIS2_BORDER  = "rgba(245,158,11,0.45)";
+const NIS2_COLOR   = "#D97706";
+const NIS2_BG      = "rgba(217,119,6,0.12)";
+const NIS2_BORDER  = "rgba(217,119,6,0.45)";
 
 
 // ── NIS2 Helpers ──
@@ -143,8 +143,8 @@ const FRAMEWORK_DOCS = [
 // ── Domains ──
 const DOMAINS = [
   {
-    id:"data", label:"Data Governance", icon:"◈", color:"#4FC3F7",
-    bg:"rgba(79,195,247,0.07)", border:"rgba(79,195,247,0.25)",
+    id:"data", label:"Data Governance", icon:"◈", color:"#2E5EA8",
+    bg:"rgba(46,94,168,0.07)", border:"rgba(46,94,168,0.25)",
     regs:["GDPR","UK GDPR","HIPAA","CCPA","21 CFR Part 11","ALCOA+"],
     policies:[
       { id:"POL-001", title:"Data Classification Policy",    sops:[{ id:"SOP-001", title:"Data Classification Process",    wis:[{ id:"WI-001", title:"Data Classification Questionnaire" }] }] },
@@ -225,8 +225,8 @@ const DOMAINS = [
 
 // ── Regulatory Details ──
 const REG_DETAILS = [
-  { name:"ISO 27001:2022", color:"#4FC3F7", desc:"ISMS standard. Core structural framework for the entire IMF. Annex A controls addressed across all 23 policies.", docs:["All policies","All SOPs","GOV-001","RACI-001","EXC-001"] },
-  { name:"NIS2 Directive (EU) 2022/2555", color:"#F59E0B", desc:"Art.20 board governance & personal liability. Art.21 risk-management measures (a–j). Art.23 three-stage incident reporting to CSIRT/NCA.", docs:["GOV-001","SOP-012 v1.1","POL-020 v1.1","POL-022","POL-017 v1.1","POL-010 v1.1","REF-001"] },
+  { name:"ISO 27001:2022", color:"#2E5EA8", desc:"ISMS standard. Core structural framework for the entire IMF. Annex A controls addressed across all 23 policies.", docs:["All policies","All SOPs","GOV-001","RACI-001","EXC-001"] },
+  { name:"NIS2 Directive (EU) 2022/2555", color:"#D97706", desc:"Art.20 board governance & personal liability. Art.21 risk-management measures (a–j). Art.23 three-stage incident reporting to CSIRT/NCA.", docs:["GOV-001","SOP-012 v1.1","POL-020 v1.1","POL-022","POL-017 v1.1","POL-010 v1.1","REF-001"] },
   { name:"21 CFR Part 11 / EU Annex 11", color:"#FFB74D", desc:"FDA/EMA regulations for electronic records and signatures in GxP environments. Data integrity, audit trails, validated systems.", docs:["POL-003","SOP-003","POL-005","SOP-005","POL-006","SOP-006","POL-014","SOP-014"] },
   { name:"GDPR / UK GDPR", color:"#F06292", desc:"Lawful processing, data subject rights, DPIAs, 72-hour breach notification, international transfers, data protection by design.", docs:["POL-004","SOP-004","POL-001","POL-002","SOP-012 v1.1","REF-001"] },
   { name:"HIPAA", color:"#CE93D8", desc:"Privacy Rule, Security Rule, Breach Notification Rule. PHI protection. BAA requirement for business associates.", docs:["POL-004","SOP-004","POL-008","POL-013","SOP-013","SOP-012 v1.1"] },
@@ -1660,7 +1660,7 @@ document.addEventListener('DOMContentLoaded', function() {
       var sopCount = d.policies.reduce(function(s,p){return s+p.sops.length;},0);
       var wiCount = d.policies.reduce(function(s,p){return s+p.sops.reduce(function(ss,sop){return ss+(sop.wis?sop.wis.length:0);},0);},0);
 
-      html += '<div class="dom-card' + (exp ? ' expanded' : '') + '" data-domain="' + d.id + '" style="border:1px solid ' + (exp?d.color+'55':d.border) + ';border-top:3px solid ' + d.color + ';background:' + (exp?d.bg:'rgba(255,255,255,0.013)') + ';' + (hasN && !exp ? 'outline:1px solid rgba(245,158,11,0.18);' : '') + '">';
+      html += '<div class="dom-card' + (exp ? ' expanded' : '') + '" data-domain="' + d.id + '" style="border:1px solid ' + (exp?d.color+'55':d.border) + ';border-top:3px solid ' + d.color + ';background:' + (exp?d.bg:'#FFFFFF') + ';' + (hasN && !exp ? 'outline:1px solid rgba(217,119,6,0.18);' : '') + '">';
       html += '<div class="dom-card-header" onclick="toggleDomain(\'' + d.id + '\')">';
       html += '<div style="flex:1"><div style="display:flex;align-items:center;gap:8px;margin-bottom:7px">';
       html += '<span class="dom-card-icon" style="color:' + d.color + '">' + d.icon + '</span>';
@@ -1670,7 +1670,7 @@ document.addEventListener('DOMContentLoaded', function() {
       d.policies.forEach(function(p) {
         var pN = isNIS2(p.id) || p.sops.some(function(s){return isNIS2(s.id);});
         if (nis2Only && !pN) return;
-        html += '<span class="dom-card-pill' + (pN?' nis2':'') + '" style="color:' + (pN?'#F59E0B':d.color) + ';border:1px solid ' + (pN?'rgba(245,158,11,0.45)':d.border) + ';' + (pN?'background:rgba(245,158,11,0.12);':'') + '">' + p.id + '</span>';
+        html += '<span class="dom-card-pill' + (pN?' nis2':'') + '" style="color:' + (pN?'#D97706':d.color) + ';border:1px solid ' + (pN?'rgba(217,119,6,0.45)':d.border) + ';' + (pN?'background:rgba(217,119,6,0.12);':'') + '">' + p.id + '</span>';
       });
       html += '</div></div>';
       html += '<div class="dom-card-meta"><div class="dom-card-count">' + polCount + 'P·' + sopCount + 'S' + (wiCount?'·'+wiCount+'W':'') + '</div>';
@@ -1685,8 +1685,8 @@ document.addEventListener('DOMContentLoaded', function() {
           if (nis2Only && polN.length===0 && !sopN) return;
 
           html += '<div class="dom-pol-row policy' + (polN.length>0?' nis2':'') + '" style="' + (polN.length>0?'':'') + '">';
-          html += '<span class="dom-pol-id" style="color:' + (polN.length>0?'#F59E0B':d.color) + '">' + pol.id + '</span>';
-          html += '<span class="dom-pol-title" style="color:#CBD5E1">' + pol.title + '</span>';
+          html += '<span class="dom-pol-id" style="color:' + (polN.length>0?'#D97706':d.color) + '">' + pol.id + '</span>';
+          html += '<span class="dom-pol-title" style="color:#1E293B">' + pol.title + '</span>';
           if (pol.note) html += '<span class="dom-pol-note">· ' + pol.note + '</span>';
           html += nis2Badge(polN, true);
           html += pdfLink(pol.id);
@@ -1696,8 +1696,8 @@ document.addEventListener('DOMContentLoaded', function() {
             var sopArts = nis2Articles(sop.id);
             if (nis2Only && sopArts.length===0) return;
             html += '<div class="dom-pol-row sop' + (sopArts.length>0?' nis2':'') + '">';
-            html += '<span class="dom-pol-id" style="color:' + (sopArts.length>0?'#F59E0B':'#64748B') + '">' + sop.id + '</span>';
-            html += '<span class="dom-pol-title" style="color:#94A3B8">' + sop.title;
+            html += '<span class="dom-pol-id" style="color:' + (sopArts.length>0?'#D97706':'#64748B') + '">' + sop.id + '</span>';
+            html += '<span class="dom-pol-title" style="color:#475569">' + sop.title;
             if (sop.note) html += '<span class="dom-pol-note" style="margin-left:6px">· ' + sop.note + '</span>';
             html += '</span>';
             html += nis2Badge(sopArts, true);
@@ -1718,10 +1718,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Legend
     html += '<div class="ov-legend"><span class="ov-legend-label">LEGEND:</span>';
-    [['Policy','rgba(255,255,255,0.16)','#CBD5E1'],['SOP','rgba(255,255,255,0.09)','#94A3B8'],['Work Instruction','rgba(255,255,255,0.05)','#64748B'],['v1.1 amended','rgba(79,195,247,0.35)','#4FC3F7']].forEach(function(l) {
+    [['Policy','rgba(30,41,59,0.12)','#1E293B'],['SOP','rgba(71,85,105,0.12)','#475569'],['Work Instruction','rgba(100,116,139,0.12)','#64748B'],['v1.1 amended','rgba(46,94,168,0.2)','#2E5EA8']].forEach(function(l) {
       html += '<div class="legend-item"><div class="legend-swatch" style="border:1px solid ' + l[1] + '"></div><span class="legend-text" style="color:' + l[2] + '">' + l[0] + '</span></div>';
     });
-    html += '<div class="legend-item"><span class="nis2-legend-badge">&#9873; NIS2</span><span class="legend-text" style="color:#F59E0B">NIS2 article</span></div></div>';
+    html += '<div class="legend-item"><span class="nis2-legend-badge">&#9873; NIS2</span><span class="legend-text" style="color:#D97706">NIS2 article</span></div></div>';
 
     document.getElementById('tab-map').innerHTML = html;
   }
@@ -1752,19 +1752,19 @@ document.addEventListener('DOMContentLoaded', function() {
       d.policies.forEach(function(pol,pi) {
         var showPol = !nis2Only || isNIS2(pol.id) || pol.sops.some(function(s){return isNIS2(s.id);});
         if (!showPol) return;
-        html += '<div class="dom-detail-row policy-row" style="border-bottom:1px solid rgba(255,255,255,0.035)">';
+        html += '<div class="dom-detail-row policy-row" style="border-bottom:1px solid rgba(0,0,0,0.06)">';
         html += '<span class="dom-detail-row-id pol" style="color:' + d.color + '">' + pol.id + '</span>';
         html += '<span class="dom-detail-row-title pol">' + pol.title + '</span>';
-        if (pol.note) html += '<span style="font-family:monospace;font-size:9px;color:#4FC3F7;white-space:nowrap">· ' + pol.note + '</span>';
+        if (pol.note) html += '<span style="font-family:monospace;font-size:9px;color:#2E5EA8;white-space:nowrap">· ' + pol.note + '</span>';
         html += nis2Badge(nis2Articles(pol.id), true);
         html += pdfLink(pol.id) + '<span class="dom-detail-type-tag policy">POLICY</span></div>';
 
         pol.sops.forEach(function(sop) {
           if (nis2Only && !isNIS2(sop.id)) return;
           html += '<div class="dom-detail-row sop-row">';
-          html += '<span class="dom-detail-row-id sop" style="color:' + (isNIS2(sop.id)?'#F59E0B':'#64748B') + '">' + sop.id + '</span>';
+          html += '<span class="dom-detail-row-id sop" style="color:' + (isNIS2(sop.id)?'#D97706':'#64748B') + '">' + sop.id + '</span>';
           html += '<span class="dom-detail-row-title sop">' + sop.title;
-          if (sop.note) html += '<span style="margin-left:7px;font-family:monospace;font-size:9px;color:#4FC3F7">· ' + sop.note + '</span>';
+          if (sop.note) html += '<span style="margin-left:7px;font-family:monospace;font-size:9px;color:#2E5EA8">· ' + sop.note + '</span>';
           html += '</span>' + nis2Badge(nis2Articles(sop.id), true);
           html += pdfLink(sop.id) + '<span class="dom-detail-type-tag sop">SOP</span></div>';
 
@@ -1787,7 +1787,7 @@ document.addEventListener('DOMContentLoaded', function() {
     html += '<div class="regs-grid">';
     REG_DETAILS.forEach(function(r) {
       var isN = r.name.indexOf('NIS2') === 0;
-      html += '<div class="reg-card' + (isN?' nis2-card':'') + '" style="border:1px solid ' + (isN?'rgba(245,158,11,0.45)':r.color+'35') + ';border-top:3px solid ' + r.color + '">';
+      html += '<div class="reg-card' + (isN?' nis2-card':'') + '" style="border:1px solid ' + (isN?'rgba(217,119,6,0.45)':r.color+'35') + ';border-top:3px solid ' + r.color + '">';
       html += '<div class="reg-card-head"><span class="reg-card-dot" style="background:' + r.color + '"></span>';
       html += '<span class="reg-card-name" style="color:' + r.color + '">' + r.name + '</span>';
       if (isN) html += '<span class="reg-card-essential">&#9873; ESSENTIAL ENTITY</span>';
@@ -1853,7 +1853,7 @@ document.addEventListener('DOMContentLoaded', function() {
       {n:docs.length,l:'Total',c:'#2E5EA8'},{n:complete,l:'Complete',c:'#1A7A4A'},
       {n:docs.filter(function(d){return d.status==='Draft';}).length,l:'Draft',c:'#B45309'},
       {n:docs.filter(function(d){return d.status==='Planned';}).length,l:'Planned',c:'#6B7280'},
-      {n:Object.keys(NIS2_MAP).length,l:'NIS2 Relevant',c:'#F59E0B'},
+      {n:Object.keys(NIS2_MAP).length,l:'NIS2 Relevant',c:'#D97706'},
     ];
     var html = '';
     stats.forEach(function(s){
