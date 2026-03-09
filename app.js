@@ -1,9 +1,226 @@
-import { useState } from "react";
+// ═══════════════════════════════════════════════════════════════
+// Pacemente IMF — app.js · Pure vanilla JS, zero dependencies
+// ═══════════════════════════════════════════════════════════════
 
-const NAVY = "#1B2A4A";
-const BLUE = "#2E5EA8";
-const LTBLUE = "#D6E4F7";
-// ── NIS2 article mapping ──────────────────────────────────────────────────
+// ── NIS2 Mapping (Overview) ──
+const NIS2 = {
+  "GOV-001":  ["Art.20(1)","Art.20(2)","Art.21(f)"],
+  "REF-001":  ["Art.23"],
+  "PLAN-001": ["Art.20","Art.21"],
+  "EXC-001":  ["Art.21(f)"],
+  "POL-004":  ["Art.21(e)"],
+  "POL-010":  ["Art.21(a)"],
+  "SOP-010":  ["Art.21(a)"],
+  "POL-011":  ["Art.21(c)"],
+  "SOP-011":  ["Art.21(c)"],
+  "POL-016":  ["Art.21(c)"],
+  "SOP-016":  ["Art.21(c)"],
+  "POL-012":  ["Art.21(b)"],
+  "SOP-012":  ["Art.21(b)","Art.23"],
+  "POL-014":  ["Art.21(e)"],
+  "SOP-014":  ["Art.21(e)"],
+  "POL-015":  ["Art.21(e)"],
+  "POL-017":  ["Art.21(b)"],
+  "SOP-017":  ["Art.21(b)"],
+  "POL-018":  ["Art.21(h)"],
+  "SOP-018":  ["Art.21(h)"],
+  "POL-019":  ["Art.21(e)"],
+  "SOP-019":  ["Art.21(e)"],
+  "POL-013":  ["Art.21(d)"],
+  "SOP-013":  ["Art.21(d)"],
+  "POL-020":  ["Art.20(2)","Art.21(g)"],
+  "SOP-020":  ["Art.20(2)","Art.21(g)"],
+  "POL-021":  ["Art.21(g)","Art.21(i)"],
+  "SOP-021":  ["Art.21(g)","Art.21(i)"],
+  "POL-008":  ["Art.21(i)"],
+  "SOP-008":  ["Art.21(i)"],
+  "POL-009":  ["Art.21(i)"],
+  "SOP-009":  ["Art.21(i)"],
+  "POL-006":  ["Art.21(e)"],
+  "SOP-006":  ["Art.21(e)"],
+  "POL-007":  ["Art.21(e)"],
+  "SOP-007":  ["Art.21(e)"],
+  "POL-022":  ["Art.21(j)"],
+  "SOP-022":  ["Art.21(j)"],
+  "POL-023":  ["Art.21(e)"],
+  "SOP-023":  ["Art.21(e)"],
+};
+
+// Colour constants
+const NIS2_COLOR   = "#F59E0B";
+const NIS2_BG      = "rgba(245,158,11,0.12)";
+const NIS2_BORDER  = "rgba(245,158,11,0.45)";
+
+
+// ── NIS2 Helpers ──
+function nis2Articles(id) { return NIS2[id] || []; }
+function isNIS2(id) { return !!NIS2[id]; }
+function domainHasNIS2(domain) {
+  return domain.policies.some(function(p) {
+    return isNIS2(p.id) || p.sops.some(function(s) { return isNIS2(s.id); });
+  });
+}
+function nis2Badge(articles, small) {
+  if (!articles || articles.length === 0) return '';
+  var cls = small ? 'nis2-badge' : 'nis2-badge reg';
+  return '<span class="' + cls + '"><span class="nis2-badge-flag">&#9873;</span> NIS2 ' + articles.join(' ') + '</span>';
+}
+
+// ── Framework Docs ──
+const FRAMEWORK_DOCS = [
+  { id: "IMF-001", title: "Information Management Framework", type: "Framework" },
+  { id: "GOV-001", title: "NIS2 Governance Instrument",       type: "Governance Instrument" },
+  { id: "RACI-001",title: "Roles, Responsibilities & Authorities", type: "RACI" },
+  { id: "EXC-001", title: "Exception Management Policy & Register", type: "Companion" },
+  { id: "REG-001", title: "IMF Document Register",            type: "Register" },
+  { id: "PLAN-001",title: "Gap Remediation Implementation Plan", type: "Plan" },
+  { id: "REF-001", title: "Regulatory Authority Contact Register", type: "Reference" },
+];
+
+// ── Domains ──
+const DOMAINS = [
+  {
+    id:"data", label:"Data Governance", icon:"◈", color:"#4FC3F7",
+    bg:"rgba(79,195,247,0.07)", border:"rgba(79,195,247,0.25)",
+    regs:["GDPR","UK GDPR","HIPAA","CCPA","21 CFR Part 11","ALCOA+"],
+    policies:[
+      { id:"POL-001", title:"Data Classification Policy",    sops:[{ id:"SOP-001", title:"Data Classification Process",    wis:[{ id:"WI-001", title:"Data Classification Questionnaire" }] }] },
+      { id:"POL-002", title:"Data Retention & Disposal Policy", sops:[{ id:"SOP-002", title:"Data Retention & Disposal Process", wis:[] }] },
+      { id:"POL-003", title:"Data Integrity Policy (ALCOA+)", sops:[{ id:"SOP-003", title:"Data Integrity Process", wis:[] }] },
+      { id:"POL-004", title:"Privacy Policy",                sops:[{ id:"SOP-004", title:"Privacy / DPIA Process", wis:[] }], note:"v1.1 — test data mgmt" },
+    ]
+  },
+  {
+    id:"system", label:"System & Change", icon:"◎", color:"#81C784",
+    bg:"rgba(129,199,132,0.07)", border:"rgba(129,199,132,0.25)",
+    regs:["21 CFR Part 11","EU Annex 11","GAMP 5","ISO 27001"],
+    policies:[
+      { id:"POL-005", title:"System Classification Policy",  sops:[{ id:"SOP-005", title:"System Classification Process", wis:[{ id:"WI-005", title:"System Classification Questionnaire" }] }] },
+      { id:"POL-006", title:"Computer System Validation Policy", sops:[{ id:"SOP-006", title:"CSV Process", wis:[] }] },
+      { id:"POL-007", title:"Change Management Policy",      sops:[{ id:"SOP-007", title:"Change Management Process", wis:[] }] },
+    ]
+  },
+  {
+    id:"access", label:"Access & Identity", icon:"⬡", color:"#FFB74D",
+    bg:"rgba(255,183,77,0.07)", border:"rgba(255,183,77,0.25)",
+    regs:["ISO 27001","21 CFR Part 11","SOX ITGC","HIPAA"],
+    policies:[
+      { id:"POL-008", title:"Access Control Policy",         sops:[{ id:"SOP-008", title:"Access Control Process", wis:[] }] },
+      { id:"POL-009", title:"Privileged Access Management Policy", sops:[{ id:"SOP-009", title:"PAM Process", wis:[] }] },
+    ]
+  },
+  {
+    id:"risk", label:"Risk & Resilience", icon:"◇", color:"#F06292",
+    bg:"rgba(240,98,146,0.07)", border:"rgba(240,98,146,0.25)",
+    regs:["ISO 27001","NIST CSF","NIS2 Art.21(a)","NIS2 Art.21(c)"],
+    policies:[
+      { id:"POL-010", title:"Information Security Risk Policy", sops:[{ id:"SOP-010", title:"IS Risk Assessment Process", wis:[] }], note:"v1.1 — threat intel" },
+      { id:"POL-011", title:"Business Continuity Policy",    sops:[{ id:"SOP-011", title:"BC/DR Process", wis:[] }] },
+      { id:"POL-016", title:"Backup Management Policy",      sops:[{ id:"SOP-016", title:"Backup & Restore Process", wis:[] }] },
+    ]
+  },
+  {
+    id:"secops", label:"Security Operations", icon:"◉", color:"#BA68C8",
+    bg:"rgba(186,104,200,0.07)", border:"rgba(186,104,200,0.25)",
+    regs:["ISO 27001","NIS2 Art.21","NIST SP 800-61","GDPR Art.33"],
+    policies:[
+      { id:"POL-012", title:"Incident Response Policy",      sops:[{ id:"SOP-012", title:"Security Incident Response Process", wis:[], note:"v1.1 — NIS2 Art.23" }] },
+      { id:"POL-014", title:"Audit Trail & Monitoring Policy", sops:[{ id:"SOP-014", title:"Audit Trail Review Process", wis:[] }] },
+      { id:"POL-015", title:"IT Service Management Policy",  sops:[{ id:"SOP-015", title:"ITSM Operational Incident Process", wis:[] }] },
+      { id:"POL-017", title:"Vulnerability Management Policy", sops:[{ id:"SOP-017", title:"Vulnerability Management Process", wis:[] }], note:"v1.1 — CVD" },
+      { id:"POL-018", title:"Cryptography & Key Management Policy", sops:[{ id:"SOP-018", title:"Cryptography & Key Mgmt Process", wis:[] }] },
+      { id:"POL-019", title:"Network Security Policy",       sops:[{ id:"SOP-019", title:"Network Security Process", wis:[] }] },
+    ]
+  },
+  {
+    id:"vendor", label:"Third Party & Vendor", icon:"△", color:"#4DB6AC",
+    bg:"rgba(77,182,172,0.07)", border:"rgba(77,182,172,0.25)",
+    regs:["ISO 27001","NIS2 Art.21(d)","GDPR Art.28","HIPAA BAA"],
+    policies:[
+      { id:"POL-013", title:"Third Party & Vendor Risk Policy", sops:[{ id:"SOP-013", title:"Vendor Risk Assessment Process", wis:[] }] },
+    ]
+  },
+  {
+    id:"people", label:"People & Culture", icon:"◯", color:"#FFD54F",
+    bg:"rgba(255,213,79,0.07)", border:"rgba(255,213,79,0.25)",
+    regs:["ISO 27001","NIS2 Art.20(2)","NIS2 Art.21(g)","GDPR"],
+    policies:[
+      { id:"POL-020", title:"Security Awareness & Training Policy", sops:[{ id:"SOP-020", title:"Security Awareness & Training Process", wis:[] }], note:"v1.1 — Tier 0 Board" },
+      { id:"POL-021", title:"HR Security & Acceptable Use Policy", sops:[{ id:"SOP-021", title:"HR Security Process", wis:[{ id:"WI-021", title:"Acceptable Use Policy" }] }] },
+    ]
+  },
+  {
+    id:"commsai", label:"Communications & AI", icon:"✦", color:"#CE93D8",
+    bg:"rgba(206,147,216,0.07)", border:"rgba(206,147,216,0.25)",
+    regs:["NIS2 Art.21(j)","ISO 27001 A.8.26","EU AI Act","FDA AI/ML","GDPR Art.22"],
+    policies:[
+      { id:"POL-022", title:"Communications Security Policy", sops:[{ id:"SOP-022", title:"Communications Security Process", wis:[] }] },
+      { id:"POL-023", title:"AI Governance & Acceptable Use Policy", sops:[{ id:"SOP-023", title:"AI Governance Process", wis:[] }] },
+    ]
+  },
+];
+
+// ── Regulatory Details ──
+const REG_DETAILS = [
+  { name:"ISO 27001:2022", color:"#4FC3F7", desc:"ISMS standard. Core structural framework for the entire IMF. Annex A controls addressed across all 23 policies.", docs:["All policies","All SOPs","GOV-001","RACI-001","EXC-001"] },
+  { name:"NIS2 Directive (EU) 2022/2555", color:"#F59E0B", desc:"Art.20 board governance & personal liability. Art.21 risk-management measures (a–j). Art.23 three-stage incident reporting to CSIRT/NCA.", docs:["GOV-001","SOP-012 v1.1","POL-020 v1.1","POL-022","POL-017 v1.1","POL-010 v1.1","REF-001"] },
+  { name:"21 CFR Part 11 / EU Annex 11", color:"#FFB74D", desc:"FDA/EMA regulations for electronic records and signatures in GxP environments. Data integrity, audit trails, validated systems.", docs:["POL-003","SOP-003","POL-005","SOP-005","POL-006","SOP-006","POL-014","SOP-014"] },
+  { name:"GDPR / UK GDPR", color:"#F06292", desc:"Lawful processing, data subject rights, DPIAs, 72-hour breach notification, international transfers, data protection by design.", docs:["POL-004","SOP-004","POL-001","POL-002","SOP-012 v1.1","REF-001"] },
+  { name:"HIPAA", color:"#CE93D8", desc:"Privacy Rule, Security Rule, Breach Notification Rule. PHI protection. BAA requirement for business associates.", docs:["POL-004","SOP-004","POL-008","POL-013","SOP-013","SOP-012 v1.1"] },
+  { name:"SOX ITGC", color:"#FFD54F", desc:"IT General Controls for Sarbanes-Oxley. Change management, access controls, audit trails for financial reporting systems.", docs:["POL-007","SOP-007","POL-008","SOP-008","POL-014","SOP-014","POL-002"] },
+  { name:"EU AI Act / FDA AI/ML", color:"#BA68C8", desc:"Risk-based AI obligations. High-risk AI in healthcare. AI/ML-based SaMD guidance. Phased 2024–2026 EU implementation.", docs:["POL-023","SOP-023"] },
+  { name:"GAMP 5 / ALCOA+", color:"#A5D6A7", desc:"Good Automated Manufacturing Practice. ALCOA+ data integrity: Attributable, Legible, Contemporaneous, Original, Accurate + Complete, Consistent, Enduring, Available.", docs:["POL-003","SOP-003","POL-005","POL-006"] },
+  { name:"NIST CSF 2.0 / CCPA / CPRA", color:"#80CBC4", desc:"NIST Cybersecurity Framework Identify/Protect/Detect/Respond/Recover functions. California consumer privacy rights.", docs:["IMF-001","POL-010","SOP-010","POL-004","SOP-004"] },
+];
+
+// ── Stats ──
+const STATS = [
+  { n:"56", label:"Documents" },
+  { n:"9",  label:"Domains" },
+  { n:"23", label:"Policies" },
+  { n:"23", label:"SOPs" },
+  { n:"3",  label:"Work Instructions" },
+  { n:"7",  label:"Governance Docs" },
+];
+
+// ── Register Constants ──
+const GREEN = "#1A7A4A";
+const AMBER = "#B45309";
+const GREY = "#6B7280";
+
+const STATUS = {
+  "Complete":   { bg: "#D1FAE5", text: "#065F46", dot: GREEN },
+  "Draft":      { bg: "#FEF3C7", text: "#92400E", dot: AMBER },
+  "Planned":    { bg: "#F3F4F6", text: "#374151", dot: GREY },
+};
+
+const LEVELS = {
+  "Framework":  { color: "#1B2A4A", bg: "#D6E4F7" },
+  "Policy":     { color: "#1B2A4A", bg: "#E0E7FF" },
+  "SOP":        { color: "#1B2A4A", bg: "#FEF9C3" },
+  "Work Instruction": { color: "#1B2A4A", bg: "#FCE7F3" },
+  "Register":   { color: "#1B2A4A", bg: "#D1FAE5" },
+};
+
+
+// ── Register Domain Filter List ──
+const REG_DOMAINS = [
+  "All",
+  "Governance",
+  "Data Classification",
+  "System Classification",
+  "Data Governance",
+  "Access & Identity",
+  "Risk & Resilience",
+  "Compliance & Audit",
+  "Third Party",
+  "Privacy",
+  "Communications Security",
+  "AI Governance",
+  "People & Culture",
+];
+
+// ── Register NIS2 Mapping ──
 const NIS2_MAP = {
   "GOV-001":  ["Art.20(1)","Art.20(2)","Art.21(f)"],
   "REF-001":  ["Art.23"],
@@ -46,61 +263,8 @@ const NIS2_MAP = {
   "POL-023":  ["Art.21(e)"],
   "SOP-023":  ["Art.21(e)"],
 };
-const NIS2_COLOR  = "#F59E0B";
-const NIS2_BG     = "rgba(245,158,11,0.10)";
-const NIS2_BORDER = "rgba(245,158,11,0.40)";
-function nis2Articles(id) { return NIS2_MAP[id] || []; }
-function isNIS2(id)       { return !!NIS2_MAP[id]; }
-function NIS2Badge({ articles }) {
-  if (!articles || articles.length === 0) return null;
-  return (
-    <span style={{
-      display:"inline-flex",alignItems:"center",gap:4,
-      background:NIS2_BG,border:`1px solid ${NIS2_BORDER}`,
-      borderRadius:4,padding:"1px 6px",
-      fontFamily:"monospace",fontSize:9,color:NIS2_COLOR,
-      whiteSpace:"nowrap",flexShrink:0,
-    }}>
-      <span style={{fontSize:8,opacity:0.8}}>⚑</span>
-      NIS2 {articles.join(" ")}
-    </span>
-  );
-}
 
-const GREEN = "#1A7A4A";
-const AMBER = "#B45309";
-const GREY = "#6B7280";
-
-const STATUS = {
-  "Complete":   { bg: "#D1FAE5", text: "#065F46", dot: GREEN },
-  "Draft":      { bg: "#FEF3C7", text: "#92400E", dot: AMBER },
-  "Planned":    { bg: "#F3F4F6", text: "#374151", dot: GREY },
-};
-
-const LEVELS = {
-  "Framework":  { color: "#1B2A4A", bg: "#D6E4F7" },
-  "Policy":     { color: "#1B2A4A", bg: "#E0E7FF" },
-  "SOP":        { color: "#1B2A4A", bg: "#FEF9C3" },
-  "Work Instruction": { color: "#1B2A4A", bg: "#FCE7F3" },
-  "Register":   { color: "#1B2A4A", bg: "#D1FAE5" },
-};
-
-const DOMAINS = [
-  "All",
-  "Governance",
-  "Data Classification",
-  "System Classification",
-  "Data Governance",
-  "Access & Identity",
-  "Risk & Resilience",
-  "Compliance & Audit",
-  "Third Party",
-  "Privacy",
-  "Communications Security",
-  "AI Governance",
-  "People & Culture",
-];
-
+// ── Document Data (56 documents) ──
 const docs = [
   // ── Framework ──────────────────────────────────────────────────────────────
   {
@@ -1330,318 +1494,481 @@ const docs = [
     ],
     regulatoryRef: ["EU AI Act", "FDA AI/ML guidance", "21 CFR Part 11", "GDPR Art. 25"],
   },
+];
+const levelOrder = ["Framework", "Register", "Policy", "SOP", "Work Instruction"];
 
- = ["Framework", "Register", "Policy", "SOP", "Work Instruction"];
 
-export default function IMFRegister() {
-  const [search, setSearch] = useState("");
-  const [filterDomain, setFilterDomain] = useState("All");
-  const [filterLevel, setFilterLevel] = useState("All");
-  const [filterStatus, setFilterStatus] = useState("All");
-  const [selected, setSelected] = useState(null);
-  const [view, setView] = useState("table"); // table | tree
-  const [nis2Only, setNis2Only] = useState(false);
+// ═══════════════════════════════════════════════════════════════
+// DOM Interactivity
+// ═══════════════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', function() {
+  var nis2Only = false;
+  var activeTab = 'map';
+  var expandedDomains = {};
+  var nis2DocCount = Object.keys(NIS2).length;
 
-  const filtered = docs.filter(d => {
-    const matchSearch = search === "" ||
-      d.id.toLowerCase().includes(search.toLowerCase()) ||
-      d.title.toLowerCase().includes(search.toLowerCase()) ||
-      d.purpose.toLowerCase().includes(search.toLowerCase());
-    const matchDomain = filterDomain === "All" || d.domain === filterDomain;
-    const matchLevel = filterLevel === "All" || d.level === filterLevel;
-    const matchStatus = filterStatus === "All" || d.status === filterStatus;
-    const matchNis2 = !nis2Only || isNIS2(d.id);
-    return matchSearch && matchDomain && matchLevel && matchStatus && matchNis2;
+  // ── Page Navigation ──
+  document.querySelectorAll('.nav-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.nav-btn').forEach(function(b) { b.classList.remove('active'); });
+      document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
+      btn.classList.add('active');
+      var page = btn.getAttribute('data-page');
+      document.getElementById('page-' + page).classList.add('active');
+    });
   });
 
-  const selectedDoc = selected ? docs.find(d => d.id === selected) : null;
+  // ── Overview: Stat Boxes ──
+  function renderStats() {
+    var html = '';
+    STATS.forEach(function(s) {
+      html += '<div class="stat-box"><div class="stat-box-n">' + s.n + '</div><div class="stat-box-label">' + s.label.toUpperCase() + '</div></div>';
+    });
+    html += '<div class="stat-box nis2' + (nis2Only ? ' on' : '') + '" id="nis2-stat" title="Toggle NIS2 filter">';
+    html += '<div class="stat-box-n">' + nis2DocCount + '</div><div class="stat-box-label">NIS2 DOCS</div></div>';
+    document.getElementById('stat-boxes').innerHTML = html;
+    document.getElementById('nis2-stat').addEventListener('click', toggleNis2);
+  }
 
-  const statCounts = {
-    Complete: docs.filter(d => d.status === "Complete").length,
-    Draft: docs.filter(d => d.status === "Draft").length,
-    Planned: docs.filter(d => d.status === "Planned").length,
+  // ── Overview: Tab Switching ──
+  document.querySelectorAll('.ov-tab').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      activeTab = btn.getAttribute('data-tab');
+      document.querySelectorAll('.ov-tab').forEach(function(b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      document.querySelectorAll('.tab-pane').forEach(function(p) { p.classList.remove('active'); });
+      document.getElementById('tab-' + activeTab).classList.add('active');
+    });
+  });
+
+  // ── NIS2 Filter Toggle ──
+  function toggleNis2() {
+    nis2Only = !nis2Only;
+    var btn = document.getElementById('nis2-filter-btn');
+    var label = document.getElementById('nis2-filter-label');
+    btn.className = 'nis2-filter-btn' + (nis2Only ? ' on' : '');
+    btn.innerHTML = '<span class="nis2-flag">&#9873;</span> NIS2 FILTER ' + (nis2Only ? 'ON' : 'OFF');
+    label.style.display = nis2Only ? 'inline' : 'none';
+    renderStats();
+    renderMapTab();
+    renderDomainsTab();
+    renderFooter();
+    // Register NIS2 sync
+    regNis2Only = nis2Only;
+    renderRegister();
+  }
+  document.getElementById('nis2-filter-btn').addEventListener('click', toggleNis2);
+
+  // ── Overview: Map Tab ──
+  function renderMapTab() {
+    var visibleDomains = nis2Only ? DOMAINS.filter(domainHasNIS2) : DOMAINS;
+    var html = '';
+
+    // Framework layer
+    var fwLabel = nis2Only ? 'FRAMEWORK &amp; GOVERNANCE LAYER — NIS2-RELEVANT' : 'FRAMEWORK &amp; GOVERNANCE LAYER — 7 DOCUMENTS';
+    var fwCards = nis2Only ? FRAMEWORK_DOCS.filter(function(d) { return isNIS2(d.id); }) : FRAMEWORK_DOCS;
+    var layerClass = nis2Only ? 'fw-layer nis2-only' : 'fw-layer';
+
+    html += '<div class="ov-section-label">' + fwLabel + '</div>';
+    html += '<div class="' + layerClass + '"><div class="fw-grid">';
+    fwCards.forEach(function(d) {
+      var arts = nis2Articles(d.id);
+      var hl = arts.length > 0;
+      var cls = hl ? 'highlight' : 'normal';
+      html += '<div class="fw-card ' + cls + '">';
+      html += '<div class="fw-card-head"><span class="fw-card-id ' + cls + '">' + d.id + '</span>';
+      if (hl) html += nis2Badge(arts, true);
+      html += '</div>';
+      html += '<div class="fw-card-title">' + d.title + '</div>';
+      html += '<div class="fw-card-type">' + d.type.toUpperCase() + '</div></div>';
+    });
+    html += '</div></div>';
+
+    // Domain cards
+    var domLabel = nis2Only
+      ? 'NIS2-RELEVANT DOMAINS — ' + visibleDomains.length + ' OF ' + DOMAINS.length + ' DOMAINS · CLICK TO EXPAND'
+      : 'POLICY DOMAINS — 8 DOMAINS · 23 POLICIES · 23 SOPs · 3 WORK INSTRUCTIONS · CLICK TO EXPAND';
+    html += '<div class="ov-section-label">' + domLabel + '</div>';
+    html += '<div class="dom-grid">';
+    visibleDomains.forEach(function(d) {
+      var exp = expandedDomains[d.id];
+      var hasN = domainHasNIS2(d);
+      var polCount = d.policies.length;
+      var sopCount = d.policies.reduce(function(s,p){return s+p.sops.length;},0);
+      var wiCount = d.policies.reduce(function(s,p){return s+p.sops.reduce(function(ss,sop){return ss+(sop.wis?sop.wis.length:0);},0);},0);
+
+      html += '<div class="dom-card' + (exp ? ' expanded' : '') + '" data-domain="' + d.id + '" style="border:1px solid ' + (exp?d.color+'55':d.border) + ';border-top:3px solid ' + d.color + ';background:' + (exp?d.bg:'rgba(255,255,255,0.013)') + ';' + (hasN && !exp ? 'outline:1px solid rgba(245,158,11,0.18);' : '') + '">';
+      html += '<div class="dom-card-header" onclick="toggleDomain(\'' + d.id + '\')">';
+      html += '<div style="flex:1"><div style="display:flex;align-items:center;gap:8px;margin-bottom:7px">';
+      html += '<span class="dom-card-icon" style="color:' + d.color + '">' + d.icon + '</span>';
+      html += '<span class="dom-card-name">' + d.label + '</span>';
+      if (hasN) html += '<span class="dom-card-nis2-tag">&#9873; NIS2</span>';
+      html += '</div><div class="dom-card-pills">';
+      d.policies.forEach(function(p) {
+        var pN = isNIS2(p.id) || p.sops.some(function(s){return isNIS2(s.id);});
+        if (nis2Only && !pN) return;
+        html += '<span class="dom-card-pill' + (pN?' nis2':'') + '" style="color:' + (pN?'#F59E0B':d.color) + ';border:1px solid ' + (pN?'rgba(245,158,11,0.45)':d.border) + ';' + (pN?'background:rgba(245,158,11,0.12);':'') + '">' + p.id + '</span>';
+      });
+      html += '</div></div>';
+      html += '<div class="dom-card-meta"><div class="dom-card-count">' + polCount + 'P·' + sopCount + 'S' + (wiCount?'·'+wiCount+'W':'') + '</div>';
+      html += '<div class="dom-card-arrow" style="color:' + d.color + '">' + (exp?'▲':'▼') + '</div></div></div>';
+
+      // Expanded body
+      if (exp) {
+        html += '<div class="dom-card-body" style="border-top:1px solid ' + d.border + '">';
+        d.policies.forEach(function(pol,pi) {
+          var polN = nis2Articles(pol.id);
+          var sopN = pol.sops.some(function(s){return isNIS2(s.id);});
+          if (nis2Only && polN.length===0 && !sopN) return;
+
+          html += '<div class="dom-pol-row policy' + (polN.length>0?' nis2':'') + '" style="' + (polN.length>0?'':'') + '">';
+          html += '<span class="dom-pol-id" style="color:' + (polN.length>0?'#F59E0B':d.color) + '">' + pol.id + '</span>';
+          html += '<span class="dom-pol-title" style="color:#CBD5E1">' + pol.title + '</span>';
+          if (pol.note) html += '<span class="dom-pol-note">· ' + pol.note + '</span>';
+          html += nis2Badge(polN, true);
+          html += '</div>';
+
+          pol.sops.forEach(function(sop) {
+            var sopArts = nis2Articles(sop.id);
+            if (nis2Only && sopArts.length===0) return;
+            html += '<div class="dom-pol-row sop' + (sopArts.length>0?' nis2':'') + '">';
+            html += '<span class="dom-pol-id" style="color:' + (sopArts.length>0?'#F59E0B':'#64748B') + '">' + sop.id + '</span>';
+            html += '<span class="dom-pol-title" style="color:#94A3B8">' + sop.title;
+            if (sop.note) html += '<span class="dom-pol-note" style="margin-left:6px">· ' + sop.note + '</span>';
+            html += '</span>';
+            html += nis2Badge(sopArts, true);
+            html += '</div>';
+
+            if (!nis2Only && sop.wis) sop.wis.forEach(function(wi) {
+              html += '<div class="dom-pol-row wi"><span class="dom-pol-id" style="color:#334155">' + wi.id + '</span>';
+              html += '<span class="dom-pol-title" style="color:#64748B">' + wi.title + '</span></div>';
+            });
+          });
+        });
+        html += '</div>';
+      }
+      html += '</div>';
+    });
+    html += '</div>';
+
+    // Legend
+    html += '<div class="ov-legend"><span class="ov-legend-label">LEGEND:</span>';
+    [['Policy','rgba(255,255,255,0.16)','#CBD5E1'],['SOP','rgba(255,255,255,0.09)','#94A3B8'],['Work Instruction','rgba(255,255,255,0.05)','#64748B'],['v1.1 amended','rgba(79,195,247,0.35)','#4FC3F7']].forEach(function(l) {
+      html += '<div class="legend-item"><div class="legend-swatch" style="border:1px solid ' + l[1] + '"></div><span class="legend-text" style="color:' + l[2] + '">' + l[0] + '</span></div>';
+    });
+    html += '<div class="legend-item"><span class="nis2-legend-badge">&#9873; NIS2</span><span class="legend-text" style="color:#F59E0B">NIS2 article</span></div></div>';
+
+    document.getElementById('tab-map').innerHTML = html;
+  }
+
+  // Global function for onclick
+  window.toggleDomain = function(id) {
+    expandedDomains[id] = !expandedDomains[id];
+    renderMapTab();
   };
 
-  return (
-    <div style={{ fontFamily: "Arial, sans-serif", background: "#F8FAFC", minHeight: "100vh" }}>
-      {/* Header */}
-      <div style={{ background: NAVY, padding: "24px 32px 20px" }}>
-        <div style={{ fontSize: 11, color: LTBLUE, letterSpacing: 2, marginBottom: 6, textTransform: "uppercase" }}>
-          Information Management Framework
-        </div>
-        <div style={{ fontSize: 22, fontWeight: 700, color: "#fff", marginBottom: 4 }}>
-          Document Register — REG-001
-        </div>
-        <div style={{ fontSize: 13, color: "#94A3B8" }}>
-          Living index of the IMF document suite · v1.0 DRAFT
-        </div>
-        {/* Stats */}
-        <div style={{ display: "flex", gap: 16, marginTop: 20 }}>
-          {[
-            { label: "Total Documents", val: docs.length, color: LTBLUE },
-            { label: "Complete", val: statCounts.Complete, color: "#6EE7B7" },
-            { label: "Draft", val: statCounts.Draft, color: "#FDE68A" },
-            { label: "Planned", val: statCounts.Planned, color: "#CBD5E1" },
-            { label: "NIS2 Relevant", val: Object.keys(NIS2_MAP).length, color: NIS2_COLOR },
-          ].map(s => (
-            <div key={s.label} style={{ background: "rgba(255,255,255,0.08)", borderRadius: 8, padding: "10px 18px", minWidth: 90 }}>
-              <div style={{ fontSize: 22, fontWeight: 700, color: s.color }}>{s.val}</div>
-              <div style={{ fontSize: 11, color: "#94A3B8", marginTop: 2 }}>{s.label}</div>
-            </div>
-          ))}
-        </div>
-      </div>
+  // ── Overview: Domains Tab ──
+  function renderDomainsTab() {
+    var visibleDomains = nis2Only ? DOMAINS.filter(domainHasNIS2) : DOMAINS;
+    var html = '';
+    visibleDomains.forEach(function(d) {
+      html += '<div class="dom-detail-card" style="border:1px solid ' + d.border + ';border-left:4px solid ' + d.color + ';border-radius:10px;background:' + d.bg + ';overflow:hidden;margin-bottom:20px">';
+      html += '<div class="dom-detail-head">';
+      html += '<div style="display:flex;align-items:center;gap:10px"><span style="font-size:18px;color:' + d.color + '">' + d.icon + '</span><div>';
+      html += '<div class="dom-full-label">' + d.label + '</div>';
+      html += '<div style="font-family:monospace;font-size:9px;color:#475569;margin-top:2px">' + d.policies.length + ' POLIC' + (d.policies.length!==1?'IES':'Y') + ' · ' + d.policies.reduce(function(s,p){return s+p.sops.length;},0) + ' SOPs</div>';
+      html += '</div></div>';
+      html += '<div class="dom-detail-regs">';
+      d.regs.forEach(function(r) {
+        html += '<span class="dom-detail-reg-tag" style="color:' + d.color + ';border:1px solid ' + d.border + '">' + r + '</span>';
+      });
+      html += '</div></div>';
+      html += '<div style="border-top:1px solid ' + d.border + '">';
+      d.policies.forEach(function(pol,pi) {
+        var showPol = !nis2Only || isNIS2(pol.id) || pol.sops.some(function(s){return isNIS2(s.id);});
+        if (!showPol) return;
+        html += '<div class="dom-detail-row policy-row" style="border-bottom:1px solid rgba(255,255,255,0.035)">';
+        html += '<span class="dom-detail-row-id pol" style="color:' + d.color + '">' + pol.id + '</span>';
+        html += '<span class="dom-detail-row-title pol">' + pol.title + '</span>';
+        if (pol.note) html += '<span style="font-family:monospace;font-size:9px;color:#4FC3F7;white-space:nowrap">· ' + pol.note + '</span>';
+        html += nis2Badge(nis2Articles(pol.id), true);
+        html += '<span class="dom-detail-type-tag policy">POLICY</span></div>';
 
-      {/* Progress bar */}
-      <div style={{ background: "#E2E8F0", height: 6 }}>
-        <div style={{ background: GREEN, height: 6, width: `${(statCounts.Complete / docs.length) * 100}%`, transition: "width 0.5s" }} />
-      </div>
+        pol.sops.forEach(function(sop) {
+          if (nis2Only && !isNIS2(sop.id)) return;
+          html += '<div class="dom-detail-row sop-row">';
+          html += '<span class="dom-detail-row-id sop" style="color:' + (isNIS2(sop.id)?'#F59E0B':'#64748B') + '">' + sop.id + '</span>';
+          html += '<span class="dom-detail-row-title sop">' + sop.title;
+          if (sop.note) html += '<span style="margin-left:7px;font-family:monospace;font-size:9px;color:#4FC3F7">· ' + sop.note + '</span>';
+          html += '</span>' + nis2Badge(nis2Articles(sop.id), true);
+          html += '<span class="dom-detail-type-tag sop">SOP</span></div>';
 
-      {/* Toolbar */}
-      <div style={{ background: "#fff", borderBottom: "1px solid #E2E8F0", padding: "12px 32px", display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
-        <input
-          placeholder="Search documents..."
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          style={{ border: "1px solid #CBD5E1", borderRadius: 6, padding: "7px 12px", fontSize: 13, width: 220, outline: "none" }}
-        />
-        {[
-          { label: "Domain", val: filterDomain, set: setFilterDomain, opts: DOMAINS },
-          { label: "Level", val: filterLevel, set: setFilterLevel, opts: ["All", ...levelOrder] },
-          { label: "Status", val: filterStatus, set: setFilterStatus, opts: ["All", "Complete", "Draft", "Planned"] },
-        ].map(f => (
-          <select key={f.label} value={f.val} onChange={e => f.set(e.target.value)}
-            style={{ border: "1px solid #CBD5E1", borderRadius: 6, padding: "7px 12px", fontSize: 13, background: "#fff", cursor: "pointer" }}>
-            {f.opts.map(o => <option key={o}>{o === "All" ? `All ${f.label}s` : o}</option>)}
-          </select>
-        ))}
-        <button onClick={() => setNis2Only(v => !v)} style={{
-            display:"flex",alignItems:"center",gap:6,
-            padding:"7px 14px",borderRadius:6,
-            border:`1px solid ${nis2Only ? NIS2_BORDER : "rgba(245,158,11,0.35)"}`,
-            fontSize:12,fontWeight:600,cursor:"pointer",
-            background: nis2Only ? NIS2_BG : "#fff",
-            color: nis2Only ? NIS2_COLOR : "#78716C",
-            transition:"all 0.2s",
-          }}>
-            <span>⚑</span> NIS2 {nis2Only ? "ON" : "OFF"}
-          </button>
-        <div style={{ marginLeft: "auto", display: "flex", gap: 4 }}>
-          {["table", "tree"].map(v => (
-            <button key={v} onClick={() => setView(v)}
-              style={{ padding: "7px 14px", borderRadius: 6, border: "1px solid #CBD5E1", fontSize: 12, fontWeight: 600,
-                background: view === v ? NAVY : "#fff", color: view === v ? "#fff" : "#374151", cursor: "pointer", textTransform: "capitalize" }}>
-              {v === "table" ? "📋 Table" : "🌳 Tree"}
-            </button>
-          ))}
-        </div>
-      </div>
+          if (!nis2Only && sop.wis) sop.wis.forEach(function(wi) {
+            html += '<div class="dom-detail-row wi-row">';
+            html += '<span class="dom-detail-row-id wi">' + wi.id + '</span>';
+            html += '<span class="dom-detail-row-title wi">' + wi.title + '</span>';
+            html += '<span class="dom-detail-type-tag wi">WI</span></div>';
+          });
+        });
+      });
+      html += '</div></div>';
+    });
+    document.getElementById('tab-domains').innerHTML = html;
+  }
 
-      <div style={{ display: "flex", height: "calc(100vh - 240px)" }}>
-        {/* Main content */}
-        <div style={{ flex: 1, overflow: "auto", padding: 24 }}>
-          {view === "table" ? (
-            <TableView docs={filtered} selected={selected} onSelect={setSelected} />
-          ) : (
-            <TreeView docs={docs} onSelect={setSelected} selected={selected} />
-          )}
-        </div>
+  // ── Overview: Regs Tab ──
+  function renderRegsTab() {
+    var html = '<p class="regs-intro">THE IMF ADDRESSES 9 REGULATORY FRAMEWORKS ACROSS ITS 56 DOCUMENTS. ESSENTIAL ENTITY STATUS UNDER NIS2 (HEALTH SECTOR, ANNEX I) IS ASSUMED.</p>';
+    html += '<div class="regs-grid">';
+    REG_DETAILS.forEach(function(r) {
+      var isN = r.name.indexOf('NIS2') === 0;
+      html += '<div class="reg-card' + (isN?' nis2-card':'') + '" style="border:1px solid ' + (isN?'rgba(245,158,11,0.45)':r.color+'35') + ';border-top:3px solid ' + r.color + '">';
+      html += '<div class="reg-card-head"><span class="reg-card-dot" style="background:' + r.color + '"></span>';
+      html += '<span class="reg-card-name" style="color:' + r.color + '">' + r.name + '</span>';
+      if (isN) html += '<span class="reg-card-essential">&#9873; ESSENTIAL ENTITY</span>';
+      html += '</div>';
+      html += '<p class="reg-card-desc">' + r.desc + '</p>';
+      html += '<div class="reg-card-docs">';
+      r.docs.forEach(function(d) { html += '<span class="reg-card-doc">' + d + '</span>'; });
+      html += '</div></div>';
+    });
+    html += '</div>';
+    document.getElementById('tab-regs').innerHTML = html;
+  }
 
-        {/* Detail panel */}
-        {selectedDoc && (
-          <div style={{ width: 380, borderLeft: "1px solid #E2E8F0", background: "#fff", overflow: "auto" }}>
-            <DetailPanel doc={selectedDoc} allDocs={docs} onSelect={setSelected} onClose={() => setSelected(null)} />
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
+  // ── Overview: Footer ──
+  function renderFooter() {
+    document.getElementById('ov-footer-text').textContent = 'IMF v1.1 · 56 DOCUMENTS · ' + nis2DocCount + ' NIS2-RELEVANT · INTEGRITY SCAN: 0 ERRORS · CLASSIFICATION: INTERNAL USE';
+    var tags = ["ISO 27001","NIS2","21 CFR Pt.11","GDPR","HIPAA","SOX","EU AI Act","GAMP 5"];
+    var html = '';
+    tags.forEach(function(r) {
+      var isN = r === 'NIS2';
+      html += '<span class="ov-footer-tag' + (isN?' nis2':'') + '">' + r + '</span>';
+    });
+    document.getElementById('ov-footer-tags').innerHTML = html;
+  }
 
-function TableView({ docs, selected, onSelect }) {
-  return (
-    <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
-      <thead>
-        <tr style={{ background: NAVY, color: "#fff" }}>
-          {["ID", "Level", "Domain", "Title", "NIS2", "Status", "Owner", "Parent"].map(h => (
-            <th key={h} style={{ padding: "10px 12px", textAlign: "left", fontWeight: 600, fontSize: 12, whiteSpace: "nowrap" }}>{h}</th>
-          ))}
-        </tr>
-      </thead>
-      <tbody>
-        {docs.map((d, i) => {
-          const levelStyle = LEVELS[d.level] || {};
-          const statusStyle = STATUS[d.status] || {};
-          const isSelected = d.id === selected;
-          return (
-            <tr key={d.id} onClick={() => onSelect(d.id === selected ? null : d.id)}
-              style={{ background: isSelected ? LTBLUE : i % 2 === 0 ? "#fff" : "#F8FAFC",
-                cursor: "pointer", borderBottom: "1px solid #E2E8F0", transition: "background 0.1s" }}>
-              <td style={{ padding: "10px 12px", fontWeight: 700, color: BLUE, whiteSpace: "nowrap" }}>{d.id}</td>
-              <td style={{ padding: "10px 12px" }}>
-                <span style={{ background: levelStyle.bg, color: levelStyle.color, padding: "2px 8px", borderRadius: 4, fontSize: 11, fontWeight: 600, whiteSpace: "nowrap" }}>
-                  {d.level}
-                </span>
-              </td>
-              <td style={{ padding: "10px 12px", color: "#475569", fontSize: 12 }}>{d.domain}</td>
-              <td style={{ padding: "10px 12px", fontWeight: 500, color: "#1E293B" }}>{d.title}</td>
-              <td style={{ padding: "10px 12px" }}>
-                <span style={{ background: statusStyle.bg, color: statusStyle.text, padding: "2px 8px", borderRadius: 10, fontSize: 11, fontWeight: 600, whiteSpace: "nowrap" }}>
-                  ● {d.status}
-                </span>
-              </td>
-              <td style={{ padding: "10px 12px", color: "#475569", fontSize: 12, whiteSpace: "nowrap" }}>{d.owner}</td>
-              <td style={{ padding: "10px 12px" }}><NIS2Badge articles={nis2Articles(d.id)} /></td>
-              <td style={{ padding: "10px 12px", color: BLUE, fontSize: 12, fontWeight: 600 }}>{d.parent || "—"}</td>
-            </tr>
-          );
-        })}
-      </tbody>
-    </table>
-  );
-}
+  // ═══════════════════════════════════════════════════════════════
+  // REGISTER
+  // ═══════════════════════════════════════════════════════════════
+  var regSearch = '';
+  var regDomain = 'All';
+  var regLevel = 'All';
+  var regStatus = 'All';
+  var regNis2Only = false;
+  var regView = 'table';
+  var regSelected = null;
+  var treeOpen = {};
 
-function TreeView({ docs, onSelect, selected }) {
-  const topLevel = docs.filter(d => !d.parent);
-  return (
-    <div>
-      {topLevel.map(d => <TreeNode key={d.id} doc={d} allDocs={docs} onSelect={onSelect} selected={selected} depth={0} />)}
-    </div>
-  );
-}
+  var LEVEL_COLORS = {"Framework":{c:"#1B2A4A",bg:"#D6E4F7"},"Policy":{c:"#1B2A4A",bg:"#E0E7FF"},"SOP":{c:"#1B2A4A",bg:"#FEF9C3"},"Work Instruction":{c:"#1B2A4A",bg:"#FCE7F3"},"Register":{c:"#1B2A4A",bg:"#D1FAE5"},"Governance Instrument":{c:"#1B2A4A",bg:"#D6E4F7"},"Reference":{c:"#1B2A4A",bg:"#D6E4F7"},"Implementation Plan":{c:"#1B2A4A",bg:"#D6E4F7"}};
+  var STATUS_COLORS = {"Complete":{bg:"#D1FAE5",c:"#065F46"},"Draft":{bg:"#FEF3C7",c:"#92400E"},"Planned":{bg:"#F3F4F6",c:"#374151"}};
 
-function TreeNode({ doc, allDocs, onSelect, selected, depth }) {
-  const [open, setOpen] = useState(depth < 2);
-  const children = allDocs.filter(d => d.parent === doc.id);
-  const levelStyle = LEVELS[doc.level] || {};
-  const statusStyle = STATUS[doc.status] || {};
-  const isSelected = doc.id === selected;
+  function filterDocs() {
+    return docs.filter(function(d) {
+      if (regDomain !== 'All' && d.domain !== regDomain) return false;
+      if (regLevel !== 'All' && d.level !== regLevel) return false;
+      if (regStatus !== 'All' && d.status !== regStatus) return false;
+      if (regNis2Only && !NIS2_MAP[d.id]) return false;
+      if (regSearch) {
+        var s = regSearch.toLowerCase();
+        var inId = d.id.toLowerCase().indexOf(s) >= 0;
+        var inTitle = d.title.toLowerCase().indexOf(s) >= 0;
+        var inPurpose = d.purpose.toLowerCase().indexOf(s) >= 0;
+        var inContents = d.keyContents.some(function(k){return k.toLowerCase().indexOf(s)>=0;});
+        if (!inId && !inTitle && !inPurpose && !inContents) return false;
+      }
+      return true;
+    });
+  }
 
-  return (
-    <div style={{ marginLeft: depth * 24 }}>
-      <div onClick={() => { onSelect(doc.id === selected ? null : doc.id); if (children.length) setOpen(!open); }}
-        style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 12px", marginBottom: 4, borderRadius: 8,
-          background: isSelected ? LTBLUE : "#fff", border: `1px solid ${isSelected ? BLUE : "#E2E8F0"}`,
-          cursor: "pointer", transition: "all 0.1s" }}>
-        {children.length > 0 && (
-          <span style={{ color: "#94A3B8", fontSize: 11, width: 14 }}>{open ? "▼" : "▶"}</span>
-        )}
-        {children.length === 0 && <span style={{ width: 14 }} />}
-        <span style={{ fontWeight: 700, color: BLUE, minWidth: 68, fontSize: 13 }}>{doc.id}</span>
-        <span style={{ background: levelStyle.bg, color: levelStyle.color, padding: "1px 7px", borderRadius: 4, fontSize: 10, fontWeight: 700 }}>{doc.level}</span>
-        <span style={{ flex: 1, fontSize: 13, color: "#1E293B", fontWeight: 500 }}>{doc.title}</span>
-        <NIS2Badge articles={nis2Articles(doc.id)} />
-        <span style={{ background: statusStyle.bg, color: statusStyle.text, padding: "1px 7px", borderRadius: 10, fontSize: 10, fontWeight: 600 }}>● {doc.status}</span>
-      </div>
-      {open && children.map(c => <TreeNode key={c.id} doc={c} allDocs={allDocs} onSelect={onSelect} selected={selected} depth={depth + 1} />)}
-    </div>
-  );
-}
+  function renderRegStats() {
+    var complete = docs.filter(function(d){return d.status==='Complete';}).length;
+    var pct = Math.round(complete/docs.length*100);
+    var stats = [
+      {n:docs.length,l:'Total',c:'#2E5EA8'},{n:complete,l:'Complete',c:'#1A7A4A'},
+      {n:docs.filter(function(d){return d.status==='Draft';}).length,l:'Draft',c:'#B45309'},
+      {n:docs.filter(function(d){return d.status==='Planned';}).length,l:'Planned',c:'#6B7280'},
+      {n:Object.keys(NIS2_MAP).length,l:'NIS2 Relevant',c:'#F59E0B'},
+    ];
+    var html = '';
+    stats.forEach(function(s){
+      html += '<div class="reg-stat"><div class="reg-stat-n" style="color:'+s.c+'">'+s.n+'</div><div class="reg-stat-label">'+s.l+'</div></div>';
+    });
+    document.getElementById('reg-stats').innerHTML = html;
+    document.querySelector('.reg-progress-bar').style.width = pct+'%';
+  }
 
-function DetailPanel({ doc, allDocs, onSelect, onClose }) {
-  const levelStyle = LEVELS[doc.level] || {};
-  const statusStyle = STATUS[doc.status] || {};
-  const parentDoc = doc.parent ? allDocs.find(d => d.id === doc.parent) : null;
-  const childDocs = allDocs.filter(d => d.parent === doc.id);
+  function renderRegToolbar() {
+    var html = '<input type="text" class="reg-search" placeholder="Search documents..." id="reg-search-input" value="'+regSearch+'">';
+    html += '<select class="reg-select" id="reg-domain-filter">';
+    REG_DOMAINS.forEach(function(d){html += '<option'+(regDomain===d?' selected':'')+'>'+d+'</option>';});
+    html += '</select>';
+    html += '<select class="reg-select" id="reg-level-filter"><option>All</option>';
+    levelOrder.forEach(function(l){html += '<option'+(regLevel===l?' selected':'')+'>'+l+'</option>';});
+    html += '</select>';
+    html += '<select class="reg-select" id="reg-status-filter">';
+    ['All','Complete','Draft','Planned'].forEach(function(s){html += '<option'+(regStatus===s?' selected':'')+'>'+s+'</option>';});
+    html += '</select>';
+    html += '<button class="reg-nis2-btn'+(regNis2Only?' on':'')+'" id="reg-nis2-btn">&#9873; NIS2'+(regNis2Only?' ON':' OFF')+'</button>';
+    html += '<div class="reg-view-btns">';
+    html += '<button class="reg-view-btn'+(regView==='table'?' active':'')+'" data-view="table">Table</button>';
+    html += '<button class="reg-view-btn'+(regView==='tree'?' active':'')+'" data-view="tree">Tree</button></div>';
+    document.getElementById('reg-toolbar').innerHTML = html;
 
-  return (
-    <div style={{ padding: 24 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
-        <div>
-          <div style={{ fontSize: 11, color: "#94A3B8", marginBottom: 4 }}>{doc.domain}</div>
-          <div style={{ fontSize: 18, fontWeight: 700, color: NAVY }}>{doc.id}</div>
-        </div>
-        <button onClick={onClose} style={{ background: "none", border: "none", fontSize: 18, cursor: "pointer", color: "#94A3B8", padding: 4 }}>✕</button>
-      </div>
+    document.getElementById('reg-search-input').addEventListener('input', function(e){regSearch=e.target.value;renderRegList();});
+    document.getElementById('reg-domain-filter').addEventListener('change', function(e){regDomain=e.target.value;renderRegList();});
+    document.getElementById('reg-level-filter').addEventListener('change', function(e){regLevel=e.target.value;renderRegList();});
+    document.getElementById('reg-status-filter').addEventListener('change', function(e){regStatus=e.target.value;renderRegList();});
+    document.getElementById('reg-nis2-btn').addEventListener('click', function(){regNis2Only=!regNis2Only;renderRegToolbar();renderRegList();});
+    document.querySelectorAll('.reg-view-btn').forEach(function(b){
+      b.addEventListener('click', function(){regView=b.getAttribute('data-view');renderRegToolbar();renderRegList();});
+    });
+  }
 
-      <div style={{ fontSize: 14, fontWeight: 600, color: "#1E293B", marginBottom: 12, lineHeight: 1.4 }}>{doc.title}</div>
+  function renderRegList() {
+    var filtered = filterDocs();
+    if (regView === 'table') renderTable(filtered);
+    else renderTree(filtered);
+  }
 
-      <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
-        <span style={{ background: levelStyle.bg, color: levelStyle.color, padding: "3px 10px", borderRadius: 5, fontSize: 11, fontWeight: 700 }}>{doc.level}</span>
-        <span style={{ background: statusStyle.bg, color: statusStyle.text, padding: "3px 10px", borderRadius: 10, fontSize: 11, fontWeight: 700 }}>● {doc.status}</span>
-        <span style={{ background: "#F1F5F9", color: "#475569", padding: "3px 10px", borderRadius: 5, fontSize: 11 }}>v{doc.version}</span>
-      </div>
+  function renderTable(filtered) {
+    var html = '<table class="reg-table"><thead><tr><th>ID</th><th>Level</th><th>Domain</th><th>Title</th><th>Status</th><th>Owner</th><th>Parent</th></tr></thead><tbody>';
+    filtered.forEach(function(d) {
+      var lc = LEVEL_COLORS[d.level]||{c:'#1B2A4A',bg:'#F3F4F6'};
+      var sc = STATUS_COLORS[d.status]||{bg:'#F3F4F6',c:'#374151'};
+      var sel = regSelected===d.id;
+      html += '<tr class="'+(sel?'selected':'')+'" onclick="selectDoc(\''+d.id+'\')">';
+      html += '<td class="td-id">'+d.id+(NIS2_MAP[d.id]?' <span class="nis2-badge"><span class="nis2-badge-flag">&#9873;</span></span>':'')+'</td>';
+      html += '<td><span class="level-badge" style="background:'+lc.bg+';color:'+lc.c+'">'+d.level+'</span></td>';
+      html += '<td class="td-domain">'+d.domain+'</td>';
+      html += '<td class="td-title">'+d.title+'</td>';
+      html += '<td><span class="status-badge" style="background:'+sc.bg+';color:'+sc.c+'">● '+d.status+'</span></td>';
+      html += '<td class="td-owner">'+d.owner+'</td>';
+      html += '<td class="td-parent">'+(d.parent||'—')+'</td></tr>';
+    });
+    html += '</tbody></table>';
+    document.getElementById('reg-list').innerHTML = html;
+  }
 
-      <div style={{ marginBottom: 16 }}>
-        <div style={{ fontSize: 11, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", marginBottom: 6 }}>Purpose</div>
-        <div style={{ fontSize: 12, color: "#374151", lineHeight: 1.6, background: "#F8FAFC", padding: 12, borderRadius: 8, borderLeft: `3px solid ${BLUE}` }}>
-          {doc.purpose}
-        </div>
-      </div>
+  function renderTree(filtered) {
+    var filteredIds = {};
+    filtered.forEach(function(d){filteredIds[d.id]=true;});
+    var topLevel = docs.filter(function(d){return !d.parent && filteredIds[d.id];});
+    var html = '';
+    topLevel.forEach(function(d){html += renderTreeNode(d, 0, filteredIds);});
+    document.getElementById('reg-list').innerHTML = html;
+  }
 
-      <div style={{ marginBottom: 16 }}>
-        <div style={{ fontSize: 11, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", marginBottom: 8 }}>Key Contents</div>
-        {doc.keyContents.map((item, i) => (
-          <div key={i} style={{ display: "flex", gap: 8, marginBottom: 5 }}>
-            <span style={{ color: BLUE, fontWeight: 700, marginTop: 1 }}>·</span>
-            <span style={{ fontSize: 12, color: "#374151", lineHeight: 1.5 }}>{item}</span>
-          </div>
-        ))}
-      </div>
+  function renderTreeNode(doc, depth, filteredIds) {
+    var children = docs.filter(function(d){return d.parent===doc.id && filteredIds[d.id];});
+    var lc = LEVEL_COLORS[doc.level]||{c:'#1B2A4A',bg:'#F3F4F6'};
+    var sc = STATUS_COLORS[doc.status]||{bg:'#F3F4F6',c:'#374151'};
+    var isOpen = treeOpen[doc.id] !== false && depth < 2;
+    var sel = regSelected===doc.id;
 
-      <div style={{ marginBottom: 16 }}>
-        <div style={{ fontSize: 11, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", marginBottom: 8 }}>Regulatory References</div>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
-          {doc.regulatoryRef.map(r => (
-            <span key={r} style={{ background: "#EFF6FF", color: BLUE, padding: "2px 8px", borderRadius: 4, fontSize: 11, fontWeight: 600 }}>{r}</span>
-          ))}
-        </div>
-      </div>
+    var html = '<div style="margin-left:'+depth*24+'px">';
+    html += '<div class="tree-node'+(sel?' selected':'')+'" onclick="selectDoc(\''+doc.id+'\');toggleTree(\''+doc.id+'\')">';
+    if (children.length) html += '<span class="tree-toggle">'+(isOpen?'▼':'▶')+'</span>';
+    else html += '<span class="tree-toggle"></span>';
+    html += '<span class="tree-id">'+doc.id+'</span>';
+    html += '<span class="level-badge" style="background:'+lc.bg+';color:'+lc.c+';font-size:10px;padding:1px 7px">'+doc.level+'</span>';
+    html += '<span class="tree-title">'+doc.title+'</span>';
+    if (NIS2_MAP[doc.id]) html += nis2Badge(nis2Articles(doc.id)||NIS2_MAP[doc.id], true);
+    html += '<span class="status-badge" style="background:'+sc.bg+';color:'+sc.c+';font-size:10px;padding:1px 7px">● '+doc.status+'</span>';
+    html += '</div>';
+    if (isOpen) children.forEach(function(c){html += renderTreeNode(c, depth+1, filteredIds);});
+    html += '</div>';
+    return html;
+  }
 
-      {nis2Articles(doc.id).length > 0 && (
-        <div style={{ marginBottom: 16 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", marginBottom: 8 }}>NIS2 Coverage</div>
-          <div style={{ background: NIS2_BG, border: `1px solid ${NIS2_BORDER}`, borderRadius: 8, padding: "10px 14px" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-              <span style={{ fontSize: 14, color: NIS2_COLOR }}>⚑</span>
-              <span style={{ fontSize: 12, fontWeight: 700, color: NIS2_COLOR }}>NIS2 Directive (EU) 2022/2555</span>
-            </div>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
-              {nis2Articles(doc.id).map(a => (
-                <span key={a} style={{ background: "rgba(245,158,11,0.15)", color: NIS2_COLOR, border: `1px solid ${NIS2_BORDER}`, padding: "2px 9px", borderRadius: 4, fontSize: 11, fontWeight: 700 }}>{a}</span>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-      <div style={{ marginBottom: 16 }}>
-        <div style={{ fontSize: 11, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", marginBottom: 8 }}>Document Owner</div>
-        <div style={{ fontSize: 12, color: "#374151" }}>{doc.owner}</div>
-      </div>
+  window.toggleTree = function(id) {
+    treeOpen[id] = treeOpen[id] === false ? true : (treeOpen[id] === true ? false : false);
+    renderRegList();
+  };
 
-      {parentDoc && (
-        <div style={{ marginBottom: 12 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", marginBottom: 8 }}>Parent Document</div>
-          <div onClick={() => onSelect(parentDoc.id)}
-            style={{ display: "flex", gap: 8, alignItems: "center", padding: "8px 10px", background: "#F8FAFC",
-              border: "1px solid #E2E8F0", borderRadius: 6, cursor: "pointer" }}>
-            <span style={{ fontWeight: 700, color: BLUE, fontSize: 12 }}>{parentDoc.id}</span>
-            <span style={{ fontSize: 12, color: "#374151" }}>{parentDoc.title}</span>
-          </div>
-        </div>
-      )}
+  window.selectDoc = function(id) {
+    if (regSelected === id) { regSelected = null; document.getElementById('reg-detail').style.display='none'; renderRegList(); return; }
+    regSelected = id;
+    renderRegList();
+    renderDetail(id);
+  };
 
-      {childDocs.length > 0 && (
-        <div>
-          <div style={{ fontSize: 11, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", marginBottom: 8 }}>
-            Subordinate Documents ({childDocs.length})
-          </div>
-          {childDocs.map(c => {
-            const cs = STATUS[c.status] || {};
-            return (
-              <div key={c.id} onClick={() => onSelect(c.id)}
-                style={{ display: "flex", gap: 8, alignItems: "center", padding: "8px 10px", background: "#F8FAFC",
-                  border: "1px solid #E2E8F0", borderRadius: 6, cursor: "pointer", marginBottom: 5 }}>
-                <span style={{ fontWeight: 700, color: BLUE, fontSize: 12, minWidth: 60 }}>{c.id}</span>
-                <span style={{ flex: 1, fontSize: 12, color: "#374151" }}>{c.title}</span>
-                <span style={{ background: cs.bg, color: cs.text, padding: "1px 6px", borderRadius: 8, fontSize: 10, fontWeight: 600 }}>
-                  {c.status}
-                </span>
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
-}
+  function renderDetail(id) {
+    var doc = docs.find(function(d){return d.id===id;});
+    if (!doc) return;
+    var lc = LEVEL_COLORS[doc.level]||{c:'#1B2A4A',bg:'#F3F4F6'};
+    var sc = STATUS_COLORS[doc.status]||{bg:'#F3F4F6',c:'#374151'};
+    var arts = NIS2_MAP[doc.id];
+
+    var html = '<div class="detail-panel">';
+    html += '<button class="detail-close" onclick="selectDoc(null)">&times;</button>';
+    html += '<div class="detail-domain">'+doc.domain+'</div>';
+    html += '<div class="detail-id">'+doc.id+'</div>';
+    html += '<div class="detail-title">'+doc.title+'</div>';
+    html += '<div class="detail-badges">';
+    html += '<span class="detail-badge" style="background:'+lc.bg+';color:'+lc.c+'">'+doc.level+'</span>';
+    html += '<span class="detail-badge detail-status-badge" style="background:'+sc.bg+';color:'+sc.c+'">● '+doc.status+'</span>';
+    html += '<span class="detail-badge detail-version" style="background:#F1F5F9;color:#475569">v'+doc.version+'</span>';
+    html += '</div>';
+
+    if (arts) {
+      html += '<div class="detail-nis2-box"><div class="detail-nis2-head"><span class="detail-nis2-flag">&#9873;</span><span class="detail-nis2-title">NIS2 Directive (EU) 2022/2555</span></div>';
+      html += '<div class="detail-nis2-articles">';
+      arts.forEach(function(a){html += '<span class="detail-nis2-art">'+a+'</span>';});
+      html += '</div></div>';
+    }
+
+    html += '<div style="margin-bottom:16px"><div class="detail-section-title">Purpose</div>';
+    html += '<div class="detail-purpose">'+doc.purpose+'</div></div>';
+
+    html += '<div style="margin-bottom:16px"><div class="detail-section-title">Key Contents</div>';
+    doc.keyContents.forEach(function(k){
+      html += '<div class="detail-key-item"><span class="detail-key-bullet">·</span><span class="detail-key-text">'+k+'</span></div>';
+    });
+    html += '</div>';
+
+    html += '<div style="margin-bottom:16px"><div class="detail-section-title">Regulatory References</div><div class="detail-reg-tags">';
+    doc.regulatoryRef.forEach(function(r){html += '<span class="detail-reg-tag">'+r+'</span>';});
+    html += '</div></div>';
+
+    html += '<div style="margin-bottom:16px"><div class="detail-section-title">Document Owner</div><div class="detail-owner">'+doc.owner+'</div></div>';
+
+    if (doc.parent) {
+      var par = docs.find(function(d){return d.id===doc.parent;});
+      if (par) {
+        html += '<div style="margin-bottom:12px"><div class="detail-section-title">Parent Document</div>';
+        html += '<div class="detail-link" onclick="selectDoc(\''+par.id+'\')"><span class="detail-link-id">'+par.id+'</span><span class="detail-link-title">'+par.title+'</span></div></div>';
+      }
+    }
+
+    var children = docs.filter(function(d){return d.parent===doc.id;});
+    if (children.length) {
+      html += '<div><div class="detail-section-title">Subordinate Documents ('+children.length+')</div>';
+      children.forEach(function(c){
+        var cs = STATUS_COLORS[c.status]||{bg:'#F3F4F6',c:'#374151'};
+        html += '<div class="detail-link" onclick="selectDoc(\''+c.id+'\')"><span class="detail-link-id">'+c.id+'</span><span class="detail-link-title">'+c.title+'</span>';
+        html += '<span class="detail-link-status" style="background:'+cs.bg+';color:'+cs.c+'">'+c.status+'</span></div>';
+      });
+      html += '</div>';
+    }
+
+    html += '</div>';
+    var panel = document.getElementById('reg-detail');
+    panel.innerHTML = html;
+    panel.style.display = 'block';
+  }
+
+  function renderRegister() {
+    renderRegStats();
+    renderRegToolbar();
+    renderRegList();
+  }
+
+  // ── Initial Render ──
+  renderStats();
+  renderMapTab();
+  renderDomainsTab();
+  renderRegsTab();
+  renderFooter();
+  renderRegister();
+});
